@@ -1,0 +1,55 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\Admin;
+use frontend\models\Shop;
+use frontend\models\ZssAuthRole;
+use frontend\models\ZssAuthAdminNode;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+/**
+ * Site controller
+ */
+header("content-type:text/html;charset=utf-8");
+class SystemController extends Controller
+{
+	//列表
+	public function actionIndex(){
+        $arr=ZssAuthAdminNode::find()
+        ->with('admin')
+        //->with('shop')
+        ->with('zssAuthRole')
+        ->all();
+        //print_r($arr);die;
+		return $this->render('index',['arr'=>$arr]);
+	}
+	//删除
+	public function actionSysdel()
+	{
+		$admin_id=Yii::$app->request->get('admin_id');
+		$connection=Yii::$app->db;
+		$connection->createCommand()->delete('zss_auth_admin_node', "admin_id='$admin_id'")->execute();
+		 $arr=ZssAuthAdminNode::find()
+        ->with('admin')
+        //->with('shop')
+        ->with('zssAuthRole')
+        ->all();
+        //print_r($arr);die;
+		return $this->render('index',['arr'=>$arr]);
+	}
+	//用户修改(1)
+	public function actionSysup()
+	{
+		$admin_id=Yii::$app->request->get('admin_id');
+		$adminuser=Admin::find()->where("$admin_id='$admin_id'")->one();
+		$adminrole=ZssAuthAdminNode::find()->with('zssAuthRole')->where("$admin_id='$admin_id'")->one();
+		//print_r($shoplist);die;
+		return $this->render('sysup',['adminuser'=>$adminuser,'adminrole'=>$adminrole]);
+	}
+}

@@ -1,0 +1,143 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\Admin;
+use frontend\models\Shop;
+use frontend\models\ZssBanner;
+use frontend\models\ZssBannerGroup;
+use frontend\models\ZssAuthRole;
+use frontend\models\ZssAuthAdminNode;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+use yii\web\UploadedFile;
+class AppController extends Controller
+{
+    public $enableCsrfValidation=false;
+	//z轮播图列表
+	public function actionCf(){
+		$lunarr=ZssBanner::find()->with('zssBannerGroup')->orderBy("banner_id desc")->all();
+		return $this->render('uploadlist',['lunarr'=>$lunarr]);
+
+    }
+    //z轮播图添加
+     public function actionAddcf(){
+     	$model=new ZssBanner();
+        $group=new ZssBannerGroup();
+        $arrgroup=$group->group();
+        $post=Yii::$app->request->post();
+    	if (Yii::$app->request->isPost) {
+           $result=$model->banner_thumb = UploadedFile::getInstance($model, 'banner_thumb');
+            if ($result) { 
+            $dir="assets/uploads/".date("Y-m-d")."/";
+            //echo $dir;die;
+            if(!is_dir($dir)){
+             mkdir($dir,0777,true);
+            }
+             $name=rand(5,15);               
+              $re=$model->banner_thumb->saveAs('./assets/2016319/' . $name . '.' . $model->banner_thumb->extension);
+               
+               	$post['banner_thumb']='./assets/2016319/' . $name . '.' . $model->banner_thumb->extension;
+               	$end=$model->add($post);
+               	if($end){
+               		$this->redirect(array('/app/cf'));
+               	}else{
+               		echo "<script>alert('添加失败');</script>";
+               	}
+            }
+        }
+        return $this->render('uploadadd',['arrgroup'=>$arrgroup,"model"=>$model]);
+    }
+    //z轮播图删除
+    public function actionCfdel(){
+    	$banner_id=Yii::$app->request->get('banner_id');
+        $model=new ZssBanner();
+        $re=$model->del($banner_id);
+        if($re){
+            $this->redirect(array("/app/cf"));
+        }else{
+            echo "<script>alert('删除失败');location.href='index.php?r=app/cf';</script>";
+        }
+    }
+    //z轮播图修改
+    public function actionCfup(){ 
+    	$model=new ZssBanner();
+    	$banner_id=Yii::$app->request->get('banner_id');
+    	$post=Yii::$app->request->post();
+    	if (Yii::$app->request->isPost) {
+           $result=$model->banner_thumb = UploadedFile::getInstance($model, 'banner_thumb');
+            if ($result){  
+            $dir="assets/uploads/".date("Y-m-d")."/";
+            if(!is_dir($dir)){
+             mkdir($dir,0777,true);
+            }
+            $name=rand(5,15);             
+            $re=$model->banner_thumb->saveAs($dir . $name . '.' . $model->banner_thumb->extension);
+            if($re){
+              $post['banner_thumb']=$dir . $name . '.' . $model->banner_thumb->extension;
+            } 
+          }
+            $end=$model->trueup($post);
+               	if($end){
+               		$this->redirect(array('/app/cf'));
+               	}else{
+               		echo "<script>alert('修改失败');</script>";
+               	}
+        }
+        $group=new ZssBannerGroup();
+        $arrone=$model->up($banner_id);
+        $arrgroup=$group->group();
+        return $this->render('uploadeditor',['arrgroup'=>$arrgroup,"arrone"=>$arrone,"model"=>$model]);
+    }
+    //实现图片轮播组的展示列表
+    public function actionCg(){
+    	$model=new ZssBannerGroup();
+    	$arrgroup=$model->group();
+    	return $this->render('grouplist',['arrgroup'=>$arrgroup]);
+    }
+    //实现图片轮播组的删除
+     public function actionDelgroup(){
+      $group_id=Yii::$app->request->get('group_id');
+        $model=new ZssBannerGroup();
+        $re=$model->delgroup($group_id);
+        if($re){
+            $this->redirect(array("/app/cg"));
+        }else{
+            echo "<script>alert('删除失败');location.href='index.php?r=app/cf';</script>";
+        }
+    }
+    //实现图片轮播组的修改
+      public function actionUpgroup(){
+       $model=new ZssBannerGroup();
+        $group_id=Yii::$app->request->get('group_id');
+        $post=Yii::$app->request->post();
+        if($post){
+           $result=$model->trueup($post);
+           if($result){
+              $this->redirect(array("/app/cg"));
+           }else{
+              echo "<script>alert('修改失败');</script>";
+           }
+        }
+        $arrgroup=$model->upgroup($group_id);
+        return $this->render('groupeditor',['arrone'=>$arrgroup]);
+    }
+    //实现图片轮播组的添加
+    public function actionAddgroup(){
+        $model=new ZssBannerGroup();
+        $post=Yii::$app->request->post();
+        if($post){
+           $result=$model->addgroup($post);
+           if($result){
+              $this->redirect(array("/app/cg"));
+           }else{
+              echo "<script>alert('添加失败');</script>";
+           }
+        }
+        return $this->render('groupadd',['model'=>$model]);
+    }
+}

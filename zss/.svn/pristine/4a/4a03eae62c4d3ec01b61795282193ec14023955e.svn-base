@@ -1,0 +1,117 @@
+<?php
+use yii\helpers\Html;
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>后台管理系统</title>
+<script type="text/javascript" src="assets/js/plugins/jquery-1.7.min.js"></script>
+<link rel="stylesheet" href="assets/css/style.default.css" type="text/css" />
+<script type="text/javascript" src="assets/js/plugins/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="assets/js/plugins/jquery.cookie.js"></script>
+<script type="text/javascript" src="assets/js/plugins/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="assets/js/plugins/jquery.uniform.min.js"></script>
+<script type="text/javascript" src="assets/js/custom/general.js"></script>
+<script type="text/javascript" src="assets/js/custom/tables.js"></script>
+<script type="text/javascript" src="assets/js/custom/from.js"></script>
+<!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="assets/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="assets/css/style.ie8.css"/>
+<![endif]-->
+<!--[if lt IE 9]>
+    <script src="assets/js/plugins/css3-mediaqueries.js"></script>
+<![endif]-->
+</head>
+
+<body class="withvernav">
+<div class="bodywrapper">
+    <div class="vernav2 iconmenu">
+        <ul>
+            <li><a href="?r=marketing/index">红包管理</a></li>
+        </ul>
+        <a class="togglemenu"></a>
+        <br /><br />
+    </div><!--leftmenu--><!--leftmenu-->
+        
+    <div class="centercontent tables">
+        <div id="contentwrapper" class="contentwrapper">
+          
+          <div class="contenttitle2">
+                    <font size="25px">红包信息修改</font>
+        </div><!--contentwrapper-->
+        <div id="form" style="margin-left:50px; margin-bottom:200px;margin-top:50px;">
+            <form id="form1" class="stdform" method="post" action="<?= Yii::$app->urlManager->createUrl(['marketing/walletupdate'])?>">
+            <input type="hidden" value="a429b6c0f4468db23a5661d1682db537fe2672c7" name="YII_CSRF_TOKEN" />
+                <p>
+                    <label>红包名称</label>
+                    <span class="field"><input type="text" value="<?php echo $wallet_list['0']['0']['wallet_name']?>" name="wallet_name" id="firstname" class="longinput" /><span id='wallet_name'></span></span>
+                </p>
+                <p>
+                    <label>是否限定金额</label>
+                    <span class="field">
+                    <select name="wallet_num_price" id="selection">
+                        <option value="1">是</option>
+                        <option value="0">否</option>
+                    </select>
+                    </span>
+                </p>
+                <p id="wallet_price">
+                    <label>限定金额</label>
+                    <span class="field"><input type="text" value="<?php echo $wallet_list['0']['0']['wallet_price']?>" name="wallet_price" id="" class="longinput" /></span>
+                </p>
+                
+                <p id="wallet_share">
+                    <label>分享者得到</label>
+                    <span class="field"><input type="text" value="<?php echo $wallet_list['0']['0']['wallet_share']?>" name="wallet_share" id="" class="longinput" /></span>
+                </p>
+                <p id="wallet_sharing">
+                    <label>被分享者得到</label>
+                    <span class="field"><input type="text" value="<?php  echo $wallet_list['0']['0']['wallet_sharing']?>" name="wallet_sharing" id="" class="longinput" /></span>
+                </p>
+                <p>
+                    <label>红包模板</label>
+                    <span class="field"><textarea cols="80" rows="5" name="wallet_template" class="mediuminput" id="location"><?php  echo  $wallet_list['0']['0']['wallet_template']?></textarea></span> 
+                </p>
+                <input type="hidden" name="wallet_id" value="<?php echo $wallet_id;?>" />
+                <br />
+                <p class="stdformbutton">
+                    <button class="submit radius2">修改</button>
+                </p>
+            </form>
+        </div>
+    </div><!-- centercontent --> 
+</div><!--bodywrapper-->
+</body>
+</html>
+<script>
+     jQuery(document).ready(function($){
+        //判断是否限定金额
+        // @  is 为是否限定金额
+        $('#selection').change(function(){
+            var is = $('#selection').val()
+            if(is==0)
+            {
+                $('#wallet_price').hide();
+                $('#wallet_share').hide();
+                $('#wallet_sharing').hide();
+            }
+             if(is==1)
+            {
+                $('#wallet_price').show();
+                $('#wallet_share').show();
+                $('#wallet_sharing').show();
+            }
+        });
+
+        $('#firstname').on('blur',function (){
+            var wallet_name = $('#firstname').val();
+            $.get('index.php?r=marketing/walletone',{wallet_name:wallet_name},function (txt){
+                $('#wallet_name').html(txt)
+            });
+        })
+    });
+</script>

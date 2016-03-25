@@ -1,0 +1,141 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\ContactForm;
+use frontend\models\Shop;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+/**
+ * Site controller
+ */
+header("content-type:text/html;charset=utf-8");
+class ShopController extends Controller
+{
+	public $enableCsrfValidation=false;
+	//门店列表
+	public function actionIndex(){
+		$shoplist=Shop::find()->all();
+		//print_r($shoplist);die;
+		return $this->render('shoplist',['shoplist'=>$shoplist]);
+	}
+	//门店删除
+	public function actionShopdel()
+	{
+		$shop_id=Yii::$app->request->get('shop_id');
+		$connection=Yii::$app->db;
+		$connection->createCommand()->delete('zss_shop', "shop_id='$shop_id'")->execute();
+		$shoplist=Shop::find()->all();
+		return $this->render('shoplist',['shoplist'=>$shoplist]);
+	}
+	//门店修改(1)
+	public function actionShopup()
+	{
+		$shop_id=Yii::$app->request->get('shop_id');
+		$shoplist=Shop::find()->where("$shop_id='$shop_id'")->one();
+		//print_r($shoplist);die;
+		return $this->render('shopup',['shoplist'=>$shoplist]);
+	}
+	//门店修改(2)
+	public function actionShopgai()
+	{
+		$shop=Yii::$app->request->post();
+		//print_r($shop);die;
+		$shop_id=$shop['shop_id'];
+		$shop_name=$shop['shop_name'];
+		$shop_phone=$shop['shop_phone'];
+		$shop_logitude=$shop['shop_logitude'];
+		$shop_latitude=$shop['shop_latitude'];
+		$shop_open=strtotime($shop['shop_open']);
+		//echo $shop_open;die;
+		$shop_over=strtotime($shop['shop_over']);
+		$shop_opens=strtotime($shop['shop_opens']);
+		$shop_overs=strtotime($shop['shop_overs']);
+		$sum = '';
+		$arr=$shop['shop_support'];
+		$count = count($arr);
+		for($i = 0; $i < $count; $i++){
+		$sum .= ','.$arr[$i];
+		}
+		$sum = substr($sum,1);
+		//echo($sum);die;
+		//echo implode($shop['shop_support']);
+		$shop_status=$shop['shop_status'];
+		$shop_remarks=$shop['shop_remarks'];
+		$shop_sort=$shop['shop_sort'];
+		$updated_at=date('Y-m-d H:i:s',time());
+		$connection = Yii::$app->db;
+		$re=$connection->createCommand()->update('zss_shop', [
+		    'shop_name' => "$shop_name",
+		    'shop_phone' => "$shop_phone",
+		    'shop_logitude' => "$shop_logitude",
+		    'shop_latitude' => "$shop_latitude",
+		    'shop_open' => "$shop_open",
+		    'shop_over' => "$shop_over",
+		    'shop_opens' => "$shop_opens",
+		    'shop_overs' => "$shop_overs",
+		    'shop_support' => "$sum",
+		    'shop_status' => "$shop_status",
+		    'shop_remarks' => "$shop_remarks",
+		    'updated_at' => "$updated_at"],"shop_id='$shop_id'")->execute();
+		//print_r($shoplist);die;
+		$shoplist=Shop::find()->all();
+		return $this->render('shoplist',['shoplist'=>$shoplist]);
+	}
+	//门店添加(1)
+	public function actionShopadd()
+	{
+		return $this->render('shopadd');
+	}
+	//门店添加(2)
+	public function actionShopaddpro()
+	{
+		$shop=Yii::$app->request->post();
+		//print_r($shop);die;
+		$shop_name=$shop['shop_name'];
+		$shop_phone=$shop['shop_phone'];
+		$shop_logitude=$shop['shop_logitude'];
+		$shop_latitude=$shop['shop_latitude'];
+		$shop_open=strtotime($shop['shop_open']);
+		//echo $shop_open;die;
+		$shop_over=strtotime($shop['shop_over']);
+		$shop_opens=strtotime($shop['shop_opens']);
+		$shop_overs=strtotime($shop['shop_overs']);
+		$sum = '';
+		$arr=$shop['shop_support'];
+		$count = count($arr);
+		for($i = 0; $i < $count; $i++){
+		$sum .= ','.$arr[$i];
+		}
+		$sum = substr($sum,1);
+		//echo($sum);die;
+		//echo implode($shop['shop_support']);
+		$shop_status=$shop['shop_status'];
+		$shop_remarks=$shop['shop_remarks'];
+		$shop_sort=$shop['shop_sort'];
+		$updated_at=date('Y-m-d H:i:s',time());
+		$created_at=date('Y-m-d H:i:s',time());
+		$connection = Yii::$app->db;
+		$re=$connection->createCommand()->insert('zss_shop', [
+		    'shop_name' => "$shop_name",
+		    'shop_phone' => "$shop_phone",
+		    'shop_logitude' => "$shop_logitude",
+		    'shop_latitude' => "$shop_latitude",
+		    'shop_open' => "$shop_open",
+		    'shop_over' => "$shop_over",
+		    'shop_opens' => "$shop_opens",
+		    'shop_overs' => "$shop_overs",
+		    'shop_support' => "$sum",
+		    'shop_status' => "$shop_status",
+		    'shop_remarks' => "$shop_remarks",
+		    'created_at' => "$created_at",
+		    'updated_at' => "$updated_at"])->execute();
+		$shoplist=Shop::find()->all();
+		return $this->render('shoplist',['shoplist'=>$shoplist]);
+	}
+}

@@ -1,0 +1,52 @@
+<?php
+
+namespace frontend\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "zss_series".
+ *
+ * @property integer $series_id
+ * @property string $series_name
+ * @property integer $series_status
+ * @property integer $series_sort
+ * @property integer $created_at
+ * @property integer $updated_at
+ */
+class Series extends \yii\db\ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return 'zss_series';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['series_status', 'series_sort', 'created_at', 'updated_at'], 'integer'],
+            [['series_name'], 'string', 'max' => 20]
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'series_id' => 'Series ID',
+            'series_name' => 'Series Name',
+            'series_status' => 'Series Status',
+            'series_sort' => 'Series Sort',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+        ];
+    }
+}

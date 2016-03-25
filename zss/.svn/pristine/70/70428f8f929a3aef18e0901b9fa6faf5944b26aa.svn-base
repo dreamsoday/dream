@@ -1,0 +1,322 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\ZssAdd;
+use frontend\models\Giveaway;
+use frontend\models\SignupForm;
+use frontend\models\ContactForm;
+use frontend\models\ZssWallet;
+use frontend\models\ZssDiscount;
+use frontend\models\Shop;
+use frontend\models\ZssSubtract;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+header("content-type:text/html;charset=utf-8");
+/**
+ * Marketing controller
+ * 创建人: 张鸿键    创建时间: 2016/03/16
+ */
+class MarketingController extends Controller
+{	
+	/**
+	 *	   红包管理页面
+	 *	   @ $wallet_list 为查询红包的数据	
+	 */
+	public function actionIndex()
+	{
+		$wallet = new ZssWallet;   //实例化ZssWallet对象
+		$wallet_list = $wallet->find()->asArray()->all();
+		return $this->render('wallet',array('wallet_list'=>$wallet_list));
+	}
+
+	/**
+	 *  红包的删除
+	 *  @wallet_id 为要删除红包
+	 */
+	public function actionWalletdel()
+	{
+		$wallet_id = $_GET['wallet_id'];
+		$wallet = new ZssWallet;   //实例化ZssWallet对象
+		$re = $wallet->deleteAll('wallet_id=:wallet_id',array(":wallet_id"=>$wallet_id));
+		if($re){
+			echo '1';
+		}else{
+			echo '0';
+		}
+	}
+	public $enableCsrfValidation=false;
+	/**
+	 *  红包的添加
+	 *  @ wallet_name       红包名称
+	 *  @ wallet_num_price  红包是否限定金额 1限定 0不限定
+	 *  @ wallet_share      分享者得到金额
+	 *  @ wallet_sharing    被分享者得到金额
+	 *  @ wallet_template   红包模板
+	 *  @ wallet_price      限定金额
+	 *  @ created_at        创建时间
+	 */
+	public function actionWalletadd()
+	{
+		$request = Yii::$app->request;
+		$wallet_name = Yii::$app->request->post('wallet_name');
+		$wallet_num_price = Yii::$app->request->post('wallet_num_price');
+		$wallet_price=Yii::$app->request->post('wallet_price');
+		$wallet_share=Yii::$app->request->post('wallet_share');
+		$wallet_sharing=Yii::$app->request->post('wallet_sharing');
+		if($wallet_price=="") {$wallet_price=2;}
+		if($wallet_share=="") {$wallet_share=1;}
+		if($wallet_sharing=="") {$wallet_sharing=1;}
+		$create_at = time();
+		$wallet = new ZssWallet;
+		$wallet->wallet_name = $wallet_name;
+		$wallet->wallet_num_price = $wallet_num_price;
+		$wallet->wallet_price = $wallet_price;
+		$wallet->wallet_share = $wallet_share;
+		$wallet->wallet_sharing = $wallet_sharing;
+		$wallet->wallet_show = '1';
+		$wallet->created_at = $create_at;
+		$re = $wallet->save();
+		if($re){
+			$this->redirect(array("/marketing/index"));
+		}
+	}
+	/**
+	* 红包状态
+	*
+	*/
+	public function actionWalletishow(){
+		$id = $_GET['id'];
+		$is_show = $_GET['is_show'];
+		//echo $is_show;die;
+		$wallet = new ZssWallet;
+		if($is_show=="1"){
+			$wallet->updateAll(array("wallet_show"=>'0'),'wallet_id=:wallet_id',array(":wallet_id"=>$id));
+		}else{
+			$wallet->updateAll(array("wallet_show"=>'1'),'wallet_id=:wallet_id',array(":wallet_id"=>$id));
+		}
+	}
+
+	/**
+	 *	红包的修改
+	 */
+	public function actionWalletupd(){
+		$id = $_GET['wallet_id'];
+		$wallet = new ZssWallet;   //实例化ZssWallet对象
+		$wallet_list = $wallet->find()->where(array('wallet_id'=>$id))->asArray()->all();
+		//print_r($wallet_list);die;
+		return $this->render('walletupd',array('wallet_list'=>$wallet_list,'wallet_id'=>$id));
+	}
+	//红包修改
+	public function actionWalletupdate()
+	{
+		$request = Yii::$app->request;
+		$wallet_name = Yii::$app->request->post('wallet_name');
+		$wallet_num_price = Yii::$app->request->post('wallet_num_price');
+		$wallet_price=Yii::$app->request->post('wallet_price');
+		$wallet_share=Yii::$app->request->post('wallet_share');
+		$wallet_sharing=Yii::$app->request->post('wallet_sharing');
+		$wallet_id=Yii::$app->request->post('wallet_id');
+		if($wallet_price=="") {$wallet_price=2;}
+		if($wallet_share=="") {$wallet_share=1;}
+		if($wallet_sharing=="") {$wallet_sharing=1;}
+		$updated_at = time();
+		$wallet = new ZssWallet;
+		//echo  $wallet_id;die();
+		$re = $wallet->updateAll(array("wallet_name"=>$wallet_name,'wallet_num_price'=>$wallet_num_price,'wallet_price'=>$wallet_price,'wallet_share'=>$wallet_share,'wallet_sharing'=>$wallet_sharing,'updated_at'=>$updated_at),'wallet_id=:wallet_id',array(":wallet_id"=>$wallet_id));
+		if($re){
+			$this->redirect(array("/marketing/index"));
+		}
+	}
+
+
+
+	/**
+	 *   折扣表显示
+	 */
+	public function actionDiscount()
+	{
+		$discount = new ZssDiscount;   //实例化ZssWallet对象
+		$discount_list = $discount->find()->asArray()->all();
+		$shop = new Shop;   //实例化Shop对象
+		$shop_list = $shop->find()->asArray()->all();
+		return $this->render('discount',array('discount_list'=>$discount_list,'shop_list'=>$shop_list));
+	}
+	/**
+	 *  折扣的删除
+	 */
+	public function actionDiscountdel()
+	{
+		$discount_id = $_GET['discount_id'];
+		$discount = new ZssDiscount;   //实例化Zssdiscount对象
+		$re = $discount->deleteAll('discount_id=:discount_id',array(":discount_id"=>$discount_id));
+		if($re){
+			echo '1';
+		}else{
+			echo '0';
+		}
+	}
+	//折扣的添加
+	public function actionDiscountadd(){
+		$request = Yii::$app->request;
+		$discount_num = Yii::$app->request->post('discount_num');
+		$shop_id = Yii::$app->request->post('shop_id');
+		$created_at = time();
+		$discount = new ZssDiscount;
+		$discount->discount_num = $discount_num;
+		$discount->shop_id = $shop_id;
+		$discount->discount_show = '1';
+		$discount->created_at= $created_at;
+		$discount->updated_at = $created_at;
+		$re = $discount->save();
+		if($re){
+			$this->redirect(array("/marketing/discount"));
+		}
+	}
+	//折扣的修改
+	public function actionDiscountupd(){
+		//接受id值
+		$discount_id = $_GET['discount_id'];
+		$discount = new ZssDiscount;
+		$discount_list = $discount->find()->where(array('discount_id'=>$discount_id))->asArray()->all();
+		$shop = new Shop;   //实例化Shop对象
+		$shop_list = $shop->find()->asArray()->all();
+		return $this->render('discountupd',array('discount_list'=>$discount_list,'discount_id'=>$discount_id,'shop_list'=>$shop_list));
+	}
+	public function actionDiscountupdate(){
+		$request = Yii::$app->request;
+		$discount_num = Yii::$app->request->post('discount_num');
+		$shop_id = Yii::$app->request->post('shop_id');
+		$discount_id = Yii::$app->request->post('discount_id');
+		$updated_at = time();
+		$discount = new ZssDiscount;
+		$re = $discount->updateAll(array('discount_num'=>$discount_num,'shop_id'=>$shop_id,'updated_at'=>$updated_at),'discount_id=:discount_id',array(":discount_id"=>$discount_id));
+		if($re){
+			$this->redirect(array("/marketing/discount"));
+		}
+	}
+
+	/**
+	 *   满减显示页面
+	 */
+	public function actionSubtract()
+	{
+		$subtract = new ZssSubtract;   //实例化ZssSubtract对象
+		$subtract_list = $subtract->find()->asArray()->all();
+		return $this->render('subtract',array('subtract_list'=>$subtract_list));
+	}
+	//满减的删除
+	public function actionSubtractdel(){
+		$subtract_id = $_GET['subtract_id'];
+		$subtract = new ZssSubtract;   //实例化ZssSubtract对象
+		$re = $subtract->deleteAll('subtract_id=:subtract_id',array(":subtract_id"=>$subtract_id));
+		if($re){
+			$this->redirect(array("/marketing/subtract"));
+		}
+	}
+	//满减的添加
+	public function actionSubtractadd()
+	{
+		$request = Yii::$app->request;
+		$subtract_price = Yii::$app->request->post('subtract_price');
+		$subtract_subtract = Yii::$app->request->post('subtract_subtract');	
+		$created_at = time();
+		$updated_at = $created_at;
+		$subtract = new ZssSubtract;
+		$subtract->subtract_price = $subtract_price;
+		$subtract->subtract_subtract = $subtract_subtract;
+		$subtract->created_at = $created_at;
+		$subtract->updated_at = $updated_at;	
+		$re = $subtract->save();
+		if($re){
+			$this->redirect(array("/marketing/subtract"));
+		}
+	}
+	//满减的修改
+	public function actionSubtractupd(){
+		$subtract_id = $_GET['subtract_id'];
+		$subtract = new ZssSubtract;   //实例化ZssSubtract对象
+		$subtract_list = $subtract->find()->where(array('subtract_id'=>$subtract_id))->asArray()->all();
+		//print_r($subtract_list);die;
+		return $this->render('subtractupd',array('subtract_list'=>$subtract_list,'subtract_id'=>$subtract_id));
+	}
+	public function actionSubtractupdate()
+	{
+		$request = Yii::$app->request;
+		$subtract_price = Yii::$app->request->post('subtract_price');
+		$subtract_subtract = Yii::$app->request->post('subtract_subtract');
+		$subtract_id = Yii::$app->request->post('subtract_id');
+		$updated_at = time();
+		$subtract = new ZssSubtract; 
+		$re = $subtract->updateAll(array('subtract_price'=>$subtract_price,'subtract_subtract'=>$subtract_subtract,'updated_at'=>$updated_at),'subtract_id=:subtract_id',array(":subtract_id"=>$subtract_id));
+		if($re){
+			$this->redirect(array("/marketing/subtract"));
+		}
+	}
+
+	/**
+	 *   满赠显示页面
+	 */
+	public function actionAdd()
+	{
+		$add = Yii::$app->db;
+		$add_list = $add->createCommand("select * from zss_add inner join zss_giveaway on zss_add.giveaway_id=zss_giveaway.giveaway_id")->queryAll();
+		$giveaway = new Giveaway;   //实例化Giveaway对象
+		$giveaway_list = $giveaway->find()->asArray()->all();
+		return $this->render('add',array('add_list'=>$add_list,'giveaway_list'=>$giveaway_list));
+	}
+	//满赠添加
+	public function actionAddpro()
+	{
+		$request = Yii::$app->request;
+		$add_price = Yii::$app->request->post('add_price');
+		$giveaway_id = Yii::$app->request->post('giveaway_id');
+		$created_at = time();
+		$add = new ZssAdd;
+		$add->add_price = $add_price;
+		$add->giveaway_id = $giveaway_id;
+		$add->created_at = $created_at;
+		$add->updated_at = $created_at;
+		$re = $add->save();
+		if ($re){
+			$this->redirect(array("/marketing/add"));
+		}
+	}
+	//满赠的删除
+	public function actionAdddel()
+	{
+		$add_id = $_GET['add_id'];
+		$add = new ZssAdd;
+		$re = $add->deleteAll('add_id=:add_id',array(":add_id"=>$add_id));
+		if($re){
+			$this->redirect(array("/marketing/add"));
+		}
+	}
+	//满赠的修改
+	public function actionAddupd()
+	{
+		$add_id = $_GET['add_id'];
+		$add = new ZssAdd;
+		$add_list = $add->find()->where(array('add_id'=>$add_id))->asArray()->all();
+		$giveaway = new Giveaway;   //实例化Giveaway对象
+		$giveaway_list = $giveaway->find()->asArray()->all();
+		return $this->render('addupd',array('add_list'=>$add_list,'giveaway_list'=>$giveaway_list,'add_id'=>$add_id));
+	}
+	public function actionAddupdate()
+	{
+		$request = Yii::$app->request;
+		$add_price = Yii::$app->request->post('add_price');
+		$giveaway_id = Yii::$app->request->post('giveaway_id');
+		$add_id = Yii::$app->request->post('add_id');
+		$updated_at = time();
+		$add = new ZssAdd;
+		$re = $add->updateAll(array('add_price'=>$add_price,'giveaway_id'=>$giveaway_id,'updated_at'=>$updated_at),'add_id=:add_id',array(":add_id"=>$add_id));
+		if($re){
+			$this->redirect(array("/marketing/add"));
+		}
+	}
+}

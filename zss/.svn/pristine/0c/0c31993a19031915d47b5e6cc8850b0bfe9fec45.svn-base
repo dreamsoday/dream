@@ -1,0 +1,74 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\PasswordResetRequestForm;
+use frontend\models\ResetPasswordForm;
+use frontend\models\Admin;
+use frontend\models\Series;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+/**
+ * Site controller
+ */
+class MenuController extends Controller
+{
+	public $enableCsrfValidation=false;
+   //菜品分类页面
+   		public function actionIndex(){
+   			$model=new Admin();
+   			$node_id=Yii::$app->request->get('node_id');
+   			$session = Yii::$app->session;
+   			$session->set('node_id',$node_id);
+   			if($node_id==''){
+   				$node_id=$session->get('node_id');
+   			}
+   			$modeltype=new Series();
+   		 	$arr=$modeltype->type();
+   			$arrtype=$model->navnext($node_id);
+   			return $this->render('dashboard',["arr"=>$arrtype,"arrtype"=>$arr]);
+   		}
+         //菜品分类删除
+   		public function actionDelone(){
+   			$series_id=Yii::$app->request->get('series_id');
+   			$model=new Series();
+   		 	$result=$model->del($series_id);
+   		 	if($result){
+   		 		echo "1";
+   		 	}else{
+   		 		echo "0";
+   		 	}
+   		}
+   		 public function actionList(){
+   			return $this->render('list');
+   		}
+         //菜品分类编辑
+   		 public function actionEditor(){
+   		 	$session = Yii::$app->session;
+   		 	$node_id=$session->get('node_id');
+   		 	$modeltype=new Admin();
+   		 	$arrtype=$modeltype->navnext($node_id);
+   			$series_id=Yii::$app->request->get('series_id');
+   			$model=new Series();
+   		 	$result=$model->seleone($series_id);
+   			return $this->render('form',["arr"=>$arrtype,"result"=>$result]);
+   		}
+         //实现菜品分类修改
+   		 public function actionUp(){
+   			$post=Yii::$app->request->post();
+   			$session = Yii::$app->session;
+   		 	$node_id=$session->get('node_id');
+   			$model=new Series();
+   		 	$result=$model->upone($post);
+   		 	if($result){
+   		 		$this->redirect(array("/menu/index","node_id"=>$node_id));
+   		 	}else{
+   		 		echo 46;
+   		 	}
+   		}
+}

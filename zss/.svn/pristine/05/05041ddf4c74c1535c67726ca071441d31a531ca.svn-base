@@ -1,0 +1,43 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\PasswordResetRequestForm;
+use frontend\models\ResetPasswordForm;
+use frontend\models\SignupForm;
+use frontend\models\ContactForm;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+use frontend\models\ZssPayment;
+
+/***
+  *负责人:宋听森
+  *模块:订单模块
+  *时间:2016年03月18日
+  *版权归xujian.online所有
+  *
+ ***/
+/**
+ * Site controller
+ */
+class OrderController extends Controller
+{
+	//调用订单表
+   	public function actionIndex(){
+   			//查询支付方式
+   			$model=new ZssPayment();
+   			$payment=$model->find()->all();
+   			//订单数据的查询
+   			$order=yii::$app->db->createCommand("select * from zss_order inner join zss_user on zss_order.user_id=zss_user.user_id inner join zss_payment on zss_payment.payment_id=zss_order.payment_id inner join zss_shop on zss_shop.shop_id=zss_order.shop_id order by order_id asc")->queryAll();
+   			return $this->render('order',array('payment'=>$payment,'order'=>$order));
+   		}
+   	//调用订单详情表
+   	public function actionOrder_details(){
+   		echo "<h1>功能等待开发中</h1>";
+   	}
+}

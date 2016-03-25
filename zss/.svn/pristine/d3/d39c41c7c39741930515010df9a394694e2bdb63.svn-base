@@ -1,0 +1,199 @@
+<?php
+namespace frontend\controllers;
+
+use Yii;
+use common\models\LoginForm;
+use frontend\models\Admin;
+use frontend\models\Shop;
+use frontend\models\ZssAuthRole;
+use frontend\models\ZssAuthAdminNode;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+/**
+ * Site controller
+ */
+header("content-type:text/html;charset=utf-8");
+class SystemController extends Controller
+{
+    //列表
+    public function actionIndex()
+    {
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $admin_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $admin_id = $admin_id['admin_id'];
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$admin_id'")->one();
+        $role_id = $admin_role['role_id'];
+        $arr = ZssAuthAdminNode::find()->with('admin')->with('zssAuthRole')->where("role_id>'$role_id'")->
+            all();
+        //print_r($arr);die;
+        return $this->render('index', ['arr' => $arr]);
+    }
+    //删除
+    public function actionSysdel()
+    {
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $admin_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $admin_id = $admin_id['admin_id'];
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$admin_id'")->one();
+        $role_id = $admin_role['role_id'];
+
+
+        $admin_id = Yii::$app->request->get('admin_id');
+        $connection = Yii::$app->db;
+        $connection->createCommand()->delete('zss_auth_admin_node', "admin_id='$admin_id'")->
+            execute();
+        $arr = ZssAuthAdminNode::find()->with('admin') //->with('shop')
+            ->with('zssAuthRole')->where("role_id>'$role_id'")->all();
+        //print_r($arr);die;
+        return $this->render('index', ['arr' => $arr]);
+    }
+    //用户修改(1)
+    public function actionSysup()
+    {
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $a_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $a_id = $a_id['admin_id'];
+        //$adminuser=Admin::find()->where("$admin_id='$admin_id'")->one();
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$a_id'")->one();
+        $role_id = $admin_role['role_id'];
+        $admin_id = Yii::$app->request->get('admin_id');
+        //echo $role_id;die;
+        $adminrole = ZssAuthAdminNode::find()->with('admin')->with('zssAuthRole')->
+            where("admin_id='$admin_id'")->one();
+        $role = ZssAuthRole::find()->where("role_id>'$role_id'")->all();
+        //print_r($role);die;
+        return $this->render('sysup', ['adminrole' => $adminrole, 'role' => $role]);
+    }
+    //用户修改
+    public function actionSysgai()
+    {
+        $user = Yii::$app->request->post();
+        //print_r($user);die;
+        @$adm_id = $user['admin_id'];
+        @$admin_name = $user['admin_name'];
+        @$admin_phone = $user['admin_phone'];
+        @$admin_email = $user['admin_email'];
+        @$admin_status = $user['admin_status'];
+        @$role_id = $user['role_id'];
+        @$admin_password = md5($user['admin_password']);
+        //echo $admin_password;die;
+        @$updated_at = date('Y-m-d H:i:s', time());
+        $connection = Yii::$app->db;
+        $re = $connection->createCommand()->update('zss_admin', ['admin_name' => "$admin_name",
+            'admin_phone' => "$admin_phone", 'admin_email' => "$admin_email", 'admin_status' =>
+            "$admin_status", 'admin_password' => "$admin_password", 'updated_at' => "$updated_at"],
+            "admin_id='$adm_id'")->execute();
+        //print_r($shoplist);die;
+        $re1 = $connection->createCommand()->update('zss_auth_admin_node', ['role_id' =>
+            "$role_id"], "admin_id='$adm_id'")->execute();
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $admin_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $admin_id = $admin_id['admin_id'];
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$admin_id'")->one();
+        $role_id = $admin_role['role_id'];
+        $arr = ZssAuthAdminNode::find()->with('admin')->with('zssAuthRole')->where("role_id>'$role_id'")->
+            all();
+        //print_r($arr);die;
+        return $this->render('index', ['arr' => $arr]);
+    }
+    //用户添加
+    public function actionSysadd()
+    {
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $a_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $a_id = $a_id['admin_id'];
+        //$adminuser=Admin::find()->where("$admin_id='$admin_id'")->one();
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$a_id'")->one();
+        $role_id = $admin_role['role_id'];
+        $role = ZssAuthRole::find()->where("role_id>'$role_id'")->all();
+        return $this->render('sysadd', ['role' => $role]);
+    }
+    //用户添加
+    public function actionSysaddpro()
+    {
+        $user = Yii::$app->request->post();
+        //print_r($user);die;
+        //$adm_id=$user['admin_id'];
+        @$admin_name = $user['admin_name'];
+        @$admin_phone = $user['admin_phone'];
+        @$admin_email = $user['admin_email'];
+        @$admin_status = $user['admin_status'];
+        @$role_id = $user['role_id'];
+        @$admin_password = md5($user['admin_password']);
+        //echo $admin_password;die;
+        @$updated_at = date('Y-m-d H:i:s', time());
+        $connection = Yii::$app->db;
+        $re = $connection->createCommand()->insert('zss_admin', ['admin_name' => "$admin_name",
+            'admin_phone' => "$admin_phone", 'admin_email' => "$admin_email", 'admin_status' =>
+            "$admin_status", 'admin_password' => "$admin_password", 'updated_at' => "$updated_at"])->
+            execute();
+        //print_r($shoplist);die;
+        $re1 = $connection->createCommand()->insert('zss_auth_admin_node', ['role_id' =>
+            "$role_id"])->execute();
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $admin_id = Admin::find()->select(['admin_id'])->where("admin_name='$username'")->
+            one();
+        $admin_id = $admin_id['admin_id'];
+        $admin_role = ZssAuthAdminNode::find()->where("admin_id='$admin_id'")->one();
+        $role_id = $admin_role['role_id'];
+        $arr = ZssAuthAdminNode::find()->with('admin')->with('zssAuthRole')->where("role_id>'$role_id'")->
+            all();
+        //print_r($arr);die;
+        return $this->render('index', ['arr' => $arr]);
+    }
+
+    //修改登录人信息
+    public function actionUpdate()
+    {
+        return $this->render('sysuser');
+    }
+
+    //修改
+    public function actionUpzl()
+    {
+        //$pwd=md5(Yii::$app->request->post('pwd'));
+        $pass = md5(Yii::$app->request->post('pass'));
+        //print_r($user);
+        $cookies = Yii::$app->request->cookies;
+        $username = $cookies->getValue('username', 'en');
+        $connection = Yii::$app->db;
+        $re1 = $connection->createCommand()->update('zss_admin', ['admin_password' => "$pass"],
+            "admin_name='$username'")->execute();
+        if ($re1) {
+            echo 1;
+        } else {
+            echo 2;
+        }
+    }
+    //修改
+    public function actionUpyzl()
+    {
+        //echo 1;die;
+        $pwd = md5(Yii::$app->request->post('pwd'));
+        //echo $pwd;die;
+        $cookies = Yii::$app->request->cookies;
+        $connection = Yii::$app->db;
+        $username = $cookies->getValue('username', 'en');
+        $ad = Admin::find()->where("admin_name='$username' And admin_password='$pwd'")->
+            all();
+        if (!$ad) {
+            echo 1;
+        }
+
+    }
+}

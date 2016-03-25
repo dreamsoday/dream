@@ -1,0 +1,72 @@
+<?php
+
+namespace app\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "zss_order".
+ *
+ * @property integer $order_id
+ * @property string $order_sn
+ * @property integer $user_id
+ * @property string $order_freight
+ * @property integer $delivery_type
+ * @property string $order_address
+ * @property integer $order_seatnumber
+ * @property string $order_amount
+ * @property string $order_realamount
+ * @property integer $payment_id
+ * @property integer $order_paystatus
+ * @property integer $order_paytime
+ * @property integer $created_att
+ * @property integer $shop_id
+ * @property integer $order_integral
+ */
+class Order extends \yii\db\ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return 'zss_order';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['user_id', 'delivery_type', 'order_seatnumber', 'payment_id', 'order_paystatus', 'order_paytime', 'created_att', 'shop_id', 'order_integral'], 'integer'],
+            [['order_freight', 'order_amount', 'order_realamount'], 'number'],
+            [['order_sn'], 'string', 'max' => 20],
+            [['order_address'], 'string', 'max' => 50]
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'order_id' => 'Order ID',
+            'order_sn' => 'Order Sn',
+            'user_id' => 'User ID',
+            'order_freight' => 'Order Freight',
+            'delivery_type' => 'Delivery Type',
+            'order_address' => 'Order Address',
+            'order_seatnumber' => 'Order Seatnumber',
+            'order_amount' => 'Order Amount',
+            'order_realamount' => 'Order Realamount',
+            'payment_id' => 'Payment ID',
+            'order_paystatus' => 'Order Paystatus',
+            'order_paytime' => 'Order Paytime',
+            'created_att' => 'Created Att',
+            'shop_id' => 'Shop ID',
+            'order_integral' => 'Order Integral',
+        ];
+    }
+}

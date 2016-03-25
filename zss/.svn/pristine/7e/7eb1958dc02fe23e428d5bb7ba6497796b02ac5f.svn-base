@@ -1,0 +1,53 @@
+<?php
+
+namespace frontend\models;
+
+use common\models\User;
+use yii\base\Model;
+use Yii;
+
+/**
+ * This is the model class for table "zss_discount".
+ *
+ * @property integer $discount_id
+ * @property integer $discount_num
+ * @property integer $discount_show
+ * @property integer $shop_id
+ * @property integer $created_at
+ * @property integer $updated_at
+ */
+class ZssDiscount extends \yii\db\ActiveRecord
+{
+    /**
+     * @inheritdoc
+     */
+    public static function tableName()
+    {
+        return 'zss_discount';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['discount_num', 'discount_show', 'shop_id', 'created_at', 'updated_at'], 'integer']
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'discount_id' => 'Discount ID',
+            'discount_num' => 'Discount Num',
+            'discount_show' => 'Discount Show',
+            'shop_id' => 'Shop ID',
+            'created_at' => 'Created At',
+            'updated_at' => 'Update ID',
+        ];
+    }
+}

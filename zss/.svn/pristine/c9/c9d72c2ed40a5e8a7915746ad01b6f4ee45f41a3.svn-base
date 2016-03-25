@@ -1,0 +1,128 @@
+<?php
+namespace frontend\controllers;
+header("content-type:text/html;charset=utf-8");
+use Yii;
+use common\models\LoginForm;
+use frontend\models\PasswordResetRequestForm;
+use frontend\models\ResetPasswordForm;
+use frontend\models\SignupForm;
+use frontend\models\ContactForm;
+use yii\base\InvalidParamException;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
+
+/**
+ * @author 徐建
+ * @统计管理
+ * @begintime:2016/15：54
+ */
+class CountController extends Controller
+{
+ /**
+  * 财务统计
+  * @finance
+  */
+  public function actionFinance()
+  {
+    //获取登陆用户
+    setcookie('username','xujian');
+    $user=$_COOKIE['username'];
+    //查询此用户信息
+    $db = Yii::$app->db;
+    $admin_user = $db->createCommand(
+    "select * from
+     zss_admin 
+     inner join zss_auth_admin_node
+     on zss_admin.admin_id=zss_auth_admin_node.admin_id 
+     inner join zss_auth_role on zss_auth_admin_node.role_id=zss_auth_role.role_id
+     where admin_name='$user'")
+     ->queryAll();
+    //print_r($admin_user);die;
+    //判断用户身份
+    if($admin_user[0]['role_id']=='1')
+    {
+    //echo $admin_user;die;
+    //查询财务信息
+    $query = (new \yii\db\Query());
+    $arr=$query->select (['*'])
+    ->from('zss_order')
+    ->innerJoin('zss_order_info','zss_order.order_id=zss_order_info.order_id')
+    ->innerJoin('zss_shop','zss_order.shop_id = zss_shop.shop_id') 
+    ->innerJoin('zss_menu','zss_shop.menu_id=zss_menu.menu_id')
+    ->all();
+    //print_r($arr);die;
+    //取出收入金钱；
+    $money=array();
+    foreach($arr as $vv)
+    {
+    $money[]=$vv['order_realamount'];
+    }
+    //print_r($money);die;
+    //求出总收入
+    $amount=array_sum($money);
+    return $this->render('finance',['arr'=>$arr,'amount'=>$amount,'role_id'=>$admin_user[0]['role_id']]);
+    }else
+    {
+    //查询本店信息
+    $db = Yii::$app->db;
+    $shop_message = $db->createCommand("select * from zss_admin
+    inner join zss_shop on zss_admin.shop_id = zss_shop.shop_id
+    inner join zss_order on zss_shop.shop_id=zss_order.shop_id
+    inner join zss_order_info on zss_order.order_id=zss_order_info.order_id
+    inner join zss_menu on zss_shop.menu_id=zss_menu.menu_id
+    where admin_name='$user'
+    ")->queryAll();
+    $realamount=array();
+    foreach($shop_message as $v)
+    {
+    $shop_amount[] = $v['order_realamount'];
+    }
+    //求出本店收入总价格
+    $shop_realamount = array_sum($shop_amount);
+    return $this->render('finance',['shop_message'=>$shop_message,'shop_realamount'=>$shop_realamount,'role_id'=>$admin_user[0]['role_id']]);
+    }
+    
+  }
+  /**  
+   * 销量统计
+   * @Sales
+   */
+  public function actionSales()
+  {
+    //获取用户信息
+    setcookie('username','admin');
+    $user=$_COOKIE['username'];
+    //查询此用户信息
+    $db = Yii::$app->db;
+    $admin_user = $db->createCommand(
+    "select * from
+     zss_admin 
+     inner join zss_auth_admin_node
+     on zss_admin.admin_id=zss_auth_admin_node.admin_id 
+     inner join zss_auth_role on zss_auth_admin_node.role_id=zss_auth_role.role_id
+     where admin_name='$user'")
+     ->queryAll();
+    //print_r($admin_user);die;
+    //判断用户身份
+    if($admin_user[0]['role_id']==1)
+    {
+        $arr=$db->createCommand("select * from zss_order
+            inner join zss_order_info on zss_order.order_id=zss_order_info.order_id
+            inner join zss_shop on zss_shop.shop_id = zss_order.shop_id
+            inner join zss_menu on zss_order_info.menu_id = zss_menu.menu_id
+                ")->queryAll();
+        //print_r($arr);die;
+        foreach ($arr as $k=>$v)
+        {
+            $arr1[$k]['shop_name']=$v['shop_name'];
+            $arr1[$k]['menu_name']=$v['menu_name'];
+            $arr1[$k]['menu_num']=$v['menu_num'];
+            $arr1[$k]['order_paytime']=$v['order_paytime'];
+        }
+        //print_r($arr1);die;
+        return $this->render('sales',['arr1'=>$arr1,'role_id'=>$admin_user[0]['role_id']]);
+    }
+  }
+}
