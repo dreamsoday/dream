@@ -14,8 +14,9 @@
 
     5、找到一个名为gitconfig的文件，打开它把里面的[remote "origin"]那一行删掉就好了！
 
- 
-
+    如何解决failed to push some refs to git
+    可以通过如下命令进行代码合并【注：pull=fetch+merge]
+    git pull --rebase origin master
  
 
     如果输入$ ssh -T git@github.com
